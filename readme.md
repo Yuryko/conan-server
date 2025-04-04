@@ -1,49 +1,55 @@
 
-Как использовать:
+## Как использовать
 
 Dockerfile nginx.conf должны лежать в одной директории.
 
-Соберите образ:
+Собираем образ:`docker build -t conan-nginx .`
 
-```
-docker build -t conan-nginx .
-```
-
-Запустите контейнер:
-
+Запускаем контейнер:
 ```
 docker run -p 8080:8080 -p 8443:8443 -p 9300:9300 conan-serv
 ```
 
-
-Примечания:
-
-- Conan Server по умолчанию работает на порту 9300;
-- Nginx проксирует запросы с порта 8080 на 9300;
-- Для настройки аутентификации и других параметров Conan Server можно добавить файл server.conf в /home/demo/.conan_server/
-- Если нужно сохранять данные Conan между перезапусками, используйте Docker volumes для /home/conan/.conan_server/data.
+>[!note] Примечания:
+>- Conan Server по умолчанию работает на порту 9300;
+>- Nginx проксирует запросы с порта 8080 на 9300;
+>- Для настройки аутентификации и других параметров Conan Server следует менять server.conf в контейнере /root/.conan_server/
+>- Если нужно сохранять данные Conan между перезапусками, > используйте Docker volumes для /root/.conan_server/data.
 
 
-Проверка:
+Проверка Nginx в браузере:`http://localhost:8080`
+  Должна выдавать **Not found: '/'** 
+  Nginx работает, но html для вывода отсутствует.
 
-http://localhost:8080 
+### Настройка клиента
 
-Настройка клиента:
+Проверьте, что все работает, команда:`conan --version`
+Должна выдавать версию.
 
-Необходимо найти действующий файл настроек, например ./conan2/global.conf
-
-```
-[storage]
+>[!attention] Важно!
+>Изменение файла /home/user/.conan/global.conf путем добавления секций типа:
+> [storage]
 path = ~/.conan2/p  # Путь к кешу пакетов
+>Вызывает сбой в работе conan, не смотря на все советы в интернетах. 
 
-[log]
-level = info  # Уровень логирования (debug, info, warning, error)
+Добавляем наше хранилище пакетов:`conan remote add myremote http://localhost:9300`
 
-[proxies]
-# http = http://proxy.example.com:8080
-# https = http://proxy.example.com:8080
+Проверка conan-server: `conan remote list`
+Должно быть два источника:
+```
+conancenter: https://center2.conan.io [Verify SSL: True, Enabled: True]
+myremote: http://localhost:9300 [Verify SSL: True, Enabled: True]
+```
+Удаляем общественный репозиторий, для этого из файла **/home/user/.conan/remotes.json**  следует вырезать секцию.    
+```
+  {
+   "name": "conancenter",
+   "url": "https://center2.conan.io",
+   "verify_ssl": true
+  },
+```
 
-[general]
-default_profile = default  # Используемый профиль
-
+Проверка: `conan remote list`
+```
+myremote: http://localhost:9300 [Verify SSL: True, Enabled: True]
 ```
