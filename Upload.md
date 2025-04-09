@@ -7,32 +7,59 @@
 */*@*/*: *
 
 [users]
-demo: demo
+conan: conan
 ```
 
 Пользователь **demo**, пароль **demo**. Правило `*/*@*/*: *` означает чтение и запись для всех.
 
 ### Первичная настройка - профили
 
-Добавьте профиль **QPOS** в файл **~/.conan2/settings.yaml** 
+Добавьте профиль **QPOS**  и **clang-qp** в файл **~/.conan2/settings.yaml** 
 ```
 os:
 	QPOS:
     Windows:
     ....
+ 
+ ...
+compiler:
+	...
+    clang-qp:
+        version: ["3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "4.0",
+                  "5.0", "6.0", "7.0", "7.1",
+                  "8", "9", "10", "11", "12", "13", "14", "15", "16", "17",
+                  "18", "19", "20"]
+        libcxx: [null, libstdc++, libstdc++11, libc++, c++_shared, c++_static]
+        cppstd: [null, 98, gnu98, 11, gnu11, 14, gnu14, 17, gnu17, 20, gnu20, 23, gnu23, 26, gnu26]
+        runtime: [null, static, dynamic]
+        runtime_type: [null, Debug, Release]
+        runtime_version: [null, v140, v141, v142, v143, v144]
+        cstd: [null, 99, gnu99, 11, gnu11, 17, gnu17, 23, gnu23]
 ```
 
+Для перезагрузки параметров cona следует выполнить команду:
 
-Создайте профиль (если он не создан), например так: **conan profile detect --force**. И отредактируйте файл профиля **~/.conan2/profiles/default** :
+```
+conan config install settings.yml
+```
 
+Создайте профиль (если он не создан), например так: **conan profile detect --force**. И отредактируйте файл профиля **~/.conan2/profiles/qpos** :
+```
 [settings]
 arch=x86_64
 build_type=Release
-compiler=Clang
+compiler=clang-qp
 compiler.cppstd=gnu17
 compiler.libcxx=libstdc++11
 compiler.version=18
 os=QPOS
+
+[conf]
+tools.cmake.cmaketoolchain:user_toolchain=["/home/yury/qpsdk/platforms/QPOS.cmake"]
+```
+
+>[!varning] Важно!
+>Обязательно указать toolchain!
 
 ### Создание и загрузка пакета
 Для создания пакета с библиотекой для последующей загрузки на сервер необходимо создать рецепт **conanfile.py** например такого содержания:
@@ -66,9 +93,14 @@ zlib_package/
 ```
 
 
-Из каталога **zlib_package** запускаем следующую команду упаковки и отправки на сервер:
+Из каталога **zlib_package** запускаем следующую команду упаковки пакета:
 
 ``` bash
-conan create . --user=demo --profile:build=default --profile:host=default 
+conan create . --user=conan --profile:build=qpos --profile:host=default 
+```
+
+Загружаем пакет:
+```
+CONAN_LOGGING_LEVEL=debug conan upload zlib/1.3.1@conan -r myremote
 ```
 

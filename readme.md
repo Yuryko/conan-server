@@ -1,14 +1,30 @@
 
 ## Как использовать
 
-Dockerfile nginx.conf должны лежать в одной директории.
+Dockerfile,  nginx.conf и server.conf должны лежать в одной директории.
 
-Собираем образ:`docker build -t conan-nginx .`
+Собираем образ: `docker build -t conan-server .`
+
+Создайте папку для хранения пакетов. `<DATA>`
 
 Запускаем контейнер:
 ```
-docker run -p 8080:8080 -p 8443:8443 -p 9300:9300 conan-serv
+docker run -p 8080:8080 -p 8443:8443 -p 9300:9300 -v <DATA>:/home/demo/.conan_server/data conan-server
 ```
+
+Например 
+
+
+``` 
+docker run -p 8080:8080 -p 8443:8443 -p 9300:9300 -v /home/yury/git/conan-server/data:/home/demo/.conan_server/data conan-server 
+```
+
+проверка 
+
+
+Запуск вручную `conan_server > /home/demo/.conan_server/logs/server.log 2>&1 & 
+
+
 
 >[!note] Примечания:
 >- Conan Server по умолчанию работает на порту 9300;

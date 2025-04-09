@@ -1,7 +1,7 @@
 from conan import ConanFile
 from conan.tools.files import copy
 
-class ZlibPrebuiltConan(ConanFile):
+class ZlibConan(ConanFile):
     name = "zlib"
     version = "1.3.1"
     settings = "os", "arch", "compiler", "build_type"
